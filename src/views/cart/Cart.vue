@@ -8,6 +8,6 @@ export default {
   name : 'Cart',
  }
 </script>
-<style lang="" scoped>
+<style scoped>
   
 </style>
