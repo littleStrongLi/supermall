@@ -39,6 +39,7 @@
 
   import {getHomeMultidata, getHomeGoods} from 'network/home'
   import {debounce} from 'common/utils'
+  import {itemListenerMixin, backTopMixin} from 'common/mixin'
   
   export default {
     name : 'Home',
@@ -64,10 +65,9 @@
           'sell': {page: 0, list:[]}
         },
         currentType: 'pop',
-        isShowBackTop: false,
         tabOffsetTop: 0,
         isTabFixed: false,
-        saveY: 0
+        saveY: 0,
       }
     },
 
@@ -84,23 +84,30 @@
       
     },
 
-    mounted () {
-      //在created()中使用this.$refs，document.querySelector查询时可能为null，推荐在mounted()中使用
-      //监听item中图片加载完成（监听事件总线）
-      const refresh = debounce(this.$refs.scroll.refresh, 500);
-      this.$bus.$on('itemIamgeLoad', ()=>{
-        refresh();
-      })
-    },
+     mixins: [itemListenerMixin, backTopMixin], //使用混入替代如下代码
+    // mounted () {
+    //   //在created()中使用this.$refs，document.querySelector查询时可能为null，推荐在mounted()中使用
+    //   //监听item中图片加载完成（监听事件总线） 
+    //   //debounce 防抖函数
+    //   const refresh = debounce(this.$refs.scroll.refresh, 500);
 
+    //   //对监听的事件进行保存
+    //   this.itemIamgeListener = () => { refresh() };
+    //   this.$bus.$on('itemIamgeLoad', itemIamgeListener)
+    // },
+
+    //组件有缓存（keep-alive），进入时调用
     activated () {
+      // console.log(this.saveY)
       this.$refs.scroll.scrollTo(0, this.saveY, 0);
       this.$refs.scroll.refresh();
     },
 
+    //组件有缓存（keep-alive），离开时调用
     deactivated () {
       this.saveY = this.$refs.scroll.getScrollY();
-      //console.log(this.saveY)
+      //取消全局事件的监听
+      this.$bus.$off('itemIamgeLoad', this.itemIamgeListener)
     },
 
     computed: {
@@ -133,11 +140,11 @@
       },
 
       contentScroll(position){
-        //1.判断backTop是否显示
-        this.isShowBackTop = (-position.y) > 1000
-
-        //2.判断tabcontrol是否吸顶
+        //1.判断tabcontrol是否吸顶
         this.isTabFixed = (-position.y) > this.tabOffsetTop
+
+        //2.断backTop是否显示
+        this.listenerShowBackTop(position);
       },
 
       loadMore(){
@@ -154,7 +161,7 @@
       /* 网络相关的方法 */
       getHomeMultidata(){
         getHomeMultidata().then(res => {
-        //console.log(res);
+        console.log(res);
         this.banners = res.data.banner.list;
         this.recommends = res.data.recommend.list;
        })

@@ -57,6 +57,7 @@ export default {
     //封装回到顶部方法
     scrollTo(x, y, time=300){
       //先判断scroll是否为null，再执行
+      //console.log('--------')
       this.scroll && this.scroll.scrollTo(x, y, time)
     },
 
@@ -66,7 +67,7 @@ export default {
 
     refresh(){
       //先判断scroll是否为null，再执行
-      //console.log('--------')
+      //console.log('refresh--------')
       this.scroll && this.scroll.refresh();
     },
 
